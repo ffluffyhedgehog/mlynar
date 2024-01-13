@@ -1,0 +1,15 @@
+apiVersion: mlynar.dev/v1alpha1
+kind: Operator
+metadata:
+  name: fail
+  namespace: default
+spec:
+  image: "ffluffyhedgehog/mlynar-example-fail:latest"
+  possibleOutputKinds:
+    - "number-array-sum-json"
+  inputs:
+    - fileLocationEnv: "INPUT_ARRAY"
+      dataKind: "broken"
+  configurableEnv:
+    - name: "MULTIPLY_BY"
+      defaultValue: "1"

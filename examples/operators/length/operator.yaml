@@ -1,0 +1,15 @@
+apiVersion: mlynar.dev/v1alpha1
+kind: Operator
+metadata:
+  name: length
+  namespace: default
+spec:
+  image: "ffluffyhedgehog/mlynar-example-length:latest"
+  possibleOutputKinds:
+    - "number-array-length-json"
+  inputs:
+    - fileLocationEnv: "INPUT_ARRAY"
+      dataKind: "number-array-json"
+  configurableEnv:
+    - name: "MULTIPLY_BY"
+      defaultValue: "1"

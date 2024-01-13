@@ -1,0 +1,15 @@
+apiVersion: mlynar.dev/v1alpha1
+kind: Operator
+metadata:
+  name: sum
+  namespace: default
+spec:
+  image: "ffluffyhedgehog/mlynar-example-sum:latest"
+  possibleOutputKinds:
+    - "number-array-sum-json"
+  inputs:
+    - fileLocationEnv: "INPUT_ARRAY"
+      dataKind: "number-array-json"
+  configurableEnv:
+    - name: "MULTIPLY_BY"
+      defaultValue: "1"

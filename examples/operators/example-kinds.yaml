@@ -1,0 +1,56 @@
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-array-json
+spec:
+  displayName: 'Number Array JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-array-sum-json
+spec:
+  displayName: 'Number Array Sum JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-array-length-json
+spec:
+  displayName: 'Number Array Length JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-array-average-json
+spec:
+  displayName: 'Number Array Average JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-max-json
+spec:
+  displayName: 'Number Array Max JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-min-json
+spec:
+  displayName: 'Number Array Min JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: number-range-json
+spec:
+  displayName: 'Number Array Range JSON'
+---
+apiVersion: mlynar.dev/v1alpha1
+kind: DataKind
+metadata:
+  name: broken
+spec:
+  displayName: 'Broken'
+

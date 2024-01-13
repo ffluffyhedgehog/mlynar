@@ -1,0 +1,17 @@
+apiVersion: mlynar.dev/v1alpha1
+kind: Operator
+metadata:
+  name: average
+  namespace: default
+spec:
+  image: "ffluffyhedgehog/mlynar-example-average:latest"
+  possibleOutputKinds:
+    - "number-array-average-json"
+  inputs:
+    - fileLocationEnv: "INPUT_SUM"
+      dataKind: "number-array-sum-json"
+    - fileLocationEnv: "INPUT_LENGTH"
+      dataKind: "number-array-length-json"
+  configurableEnv:
+    - name: "MULTIPLY_BY"
+      defaultValue: "1"

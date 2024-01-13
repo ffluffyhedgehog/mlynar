@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlynar-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlynar
+  template:
+    metadata:
+      labels:
+        app: mlynar
+    spec:
+      serviceAccountName: mlynar-sa
+      containers:
+      - name: mlynar
+        image: ffluffyhedgehog/mlynar:0.1.0
+        imagePullPolicy: Always
+        env:
+        - name: RUN_MOUNT_DIR
+          value: "/runs"
+        - name: SERVICE_NAME
+          value: mlynar-service
+        - name: SERVICE_PORT
+          value: "3000"
+        volumeMounts:
+        - name: run-volume
+          mountPath: /runs
+      volumes:
+      - name: run-volume
+        persistentVolumeClaim:
+          claimName: mlynar-pvc

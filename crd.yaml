@@ -1,0 +1,103 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: datakinds.mlynar.dev
+spec:
+  group: mlynar.dev
+  scope: Namespaced
+  names:
+    kind: DataKind
+    listKind: DataKindList
+    plural: datakinds
+    singular: datakind
+
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                displayName:
+                  type: "string"
+                  minimum: 1
+                  maximum: 1
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: operators.mlynar.dev
+spec:
+  group: mlynar.dev
+  scope: Namespaced
+  names:
+    kind: Operator
+    listKind: OperatorList
+    plural: operators
+    singular: operator
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ['spec']
+          properties:
+            spec:
+              type: object
+              required: ['image', 'possibleOutputKinds', 'inputs']
+              properties:
+                image:
+                  type: 'string'
+                  minimum: 1
+                  maximum: 1
+                args:
+                  type: array
+                  items:
+                    type: string
+                possibleOutputKinds:
+                  type: array
+                  items:
+                    type: 'string'
+                inputs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      dataKind:
+                        type: 'string'
+                      fileLocationEnv:
+                        type: 'string'
+                constantEnv:
+                  type: array
+                  items:
+                    type: object
+                    required: ['name', 'value']
+                    properties:
+                      name:
+                        type: 'string'
+                        minimum: 1
+                        maximum: 1
+                      value:
+                        type: 'string'
+                        minimum: 1
+                        maximum: 1
+                configurableEnv:
+                  type: array
+                  items:
+                    type: object
+                    required: ['name', 'defaultValue']
+                    properties:
+                      name:
+                        type: 'string'
+                        minimum: 1
+                        maximum: 1
+                      defaultValue:
+                        type: 'string'
+                        minimum: 1
+                        maximum: 1
