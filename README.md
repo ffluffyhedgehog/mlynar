@@ -9,8 +9,11 @@ based on data kinds and operators.
 2. [Why it might be better than a user defined DAG like CWL](#why-it-might-be-better-than-a-user-defined-dag-like-cwl)
 3. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
 4. [Deploying Mlynar](#deploying-mlynar)
-4. [Executing a Run](#executing-a-run)
-5. [IMPORTANT Security concerns](#security-concerns)
+5. [Executing a Run](#executing-a-run)
+6. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
+7. [Debugging problematic Steps](#debugging-problematic-steps)
+8. [IMPORTANT Security concerns](#security-concerns)
+9. [Contribution and communication](#contribution-and-communication)
 
 ## Conceptual overview
 
@@ -403,3 +406,16 @@ instead of leaving them for manual inspection.
 and provides direct access to your cluster without any authentication or encryption. This code
 has not been subjected to security audits. **Mlynar is designed and intended to
 only be run as a microservice for other services within your cluster.**
+
+Another thing to consider is to avoid using mlynar:latest at all cost.
+This thing is real early in development and shit might change,
+and you _really_ don't want it to change on you mid-flight.
+
+## Contribution and communication
+
+Contributions... You really want to? I'm stoked if you exist. Drop a pull request,
+make it sensible and i'll take a look!
+
+Any other matter about Mlynar -- feel free to open a [discussion](https://github.com/ffluffyhedgehog/mlynar/discussions),
+an [issue](https://github.com/ffluffyhedgehog/mlynar/issues/new), or just drop me an email
+to fedir at mlynar.dev if you wish some privacy or something.
