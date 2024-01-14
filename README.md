@@ -50,6 +50,10 @@ Another thing possible with Mlynar effortlessly is dynamic branching. Your Opera
 needs to make a decision? Let it have two possible outputs, and output one of the two
 depending on your inputs and parameters.
 
+Mlynar also exposes _all_ the intermediary data in the Run, with a link to
+download! No more digging into the intestines of whatever the thing you run CWL on
+nowadays or building workarounds!
+
 ## Declaring Operators and DataKinds
 
 DataKinds and Operators are declared with [Kubernetes Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
