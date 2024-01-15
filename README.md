@@ -6,8 +6,8 @@ based on data kinds and operators.
 ## Table of contents
 
 1. [Conceptual overview](#conceptual-overview)
-2. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
-3. [Fun things you might enjoy doing with Mlynar](#fun-things-you-might-enjoy-doing-with-mlynar)
+2. [Fun things you might enjoy doing with Mlynar](#fun-things-you-might-enjoy-doing-with-mlynar)
+3. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
 4. [Deploying Mlynar](#deploying-mlynar)
 5. [Executing a Run](#executing-a-run)
 6. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
