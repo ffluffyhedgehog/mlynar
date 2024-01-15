@@ -47,10 +47,6 @@ Now you're condemned to re-writing all the pipelines that use it.
 With Mlynar and it's dynamically constructed DAGs you don't really need to care about it anymore,
 since Mlynar figures out the DAG and the pipeline for you.
 
-Another thing possible with Mlynar effortlessly is dynamic branching. Your Operator 
-needs to make a decision? Let it have two possible outputs, and output one of the two
-depending on your inputs and parameters.
-
 Mlynar also exposes _all_ the intermediary data in the Run, with a link to
 download! No more digging into the intestines of whatever the thing you run CWL on
 nowadays or building workarounds!
