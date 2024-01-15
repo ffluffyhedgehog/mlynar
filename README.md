@@ -6,15 +6,14 @@ based on data kinds and operators.
 ## Table of contents
 
 1. [Conceptual overview](#conceptual-overview)
-2. [Why it might be better than a user defined DAG like CWL](#why-it-might-be-better-than-a-user-defined-dag-like-cwl)
-3. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
-4. [Fun things you might enjoy doing with Mlynar](#fun-things-you-might-enjoy-doing-with-mlynar)
-5. [Deploying Mlynar](#deploying-mlynar)
-6. [Executing a Run](#executing-a-run)
-7. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
-8. [Debugging problematic Steps](#debugging-problematic-steps)
-9. [IMPORTANT Security concerns](#security-concerns)
-10. [Contribution and communication](#contribution-and-communication)
+2. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
+3. [Fun things you might enjoy doing with Mlynar](#fun-things-you-might-enjoy-doing-with-mlynar)
+4. [Deploying Mlynar](#deploying-mlynar)
+5. [Executing a Run](#executing-a-run)
+6. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
+7. [Debugging problematic Steps](#debugging-problematic-steps)
+8. [IMPORTANT Security concerns](#security-concerns)
+9. [Contribution and communication](#contribution-and-communication)
 
 ## Conceptual overview
 
@@ -37,21 +36,16 @@ processes. Your operator might output one Unit of some Kind, might output a lot,
 all depending on input data, some requests your Operator does to external system,
 randomness, or the weather on Mars. Mlynar will handle it for you.
 
-## Why it might be better than a user defined DAG like CWL
-
-Though I admit it's not a solution for every workflow related problem, the purpose of Mlynar
-is to significantly reduce data pipeline maintenance effort. Imagine you have 10 CWL pipelines,
-of which most use one or more common blocks or tools. And one of them receives a breaking change?
-Now you're condemned to re-writing all the pipelines that use it.
-
-With Mlynar and it's dynamically constructed DAGs you don't really need to care about it anymore,
-since Mlynar figures out the DAG and the pipeline for you.
-
-Mlynar also exposes _all_ the intermediary data in the Run, with a link to
-download! No more digging into the intestines of whatever the thing you run CWL on
-nowadays or building workarounds!
-
 ## Fun things you might enjoy doing with Mlynar
+
+A tool used in 10 pipelines slightly changes their API and now you need
+to update all of them? Have no worries because with Mlynar you don't have to declare
+any pipelines! Which means you don't need to maintain them. Just update
+the operator declaration and you're done!
+
+Some of the tools are behaving weirdly and you need to dig into the intermediary
+data to figure it out? Mlynar serves you every piece of data, in or out.
+Come and get it!
 
 A step in the pipeline needs to make a decision? Declare as many possible
 outputs as you like, and let the operator select which one to output!
@@ -431,10 +425,13 @@ Another thing to consider is to avoid using mlynar:latest at all cost.
 This thing is real early in development and shit might change,
 and you _really_ don't want it to change on you mid-flight.
 
-## Contribution and communication
+## Development, contribution and communication
 
-Contributions... You really want to? I'm stoked if you exist. Drop a pull request,
-make it sensible and i'll take a look!
+I developed it relying on a cloud cluster and an image repository,
+so I haven't figured out local development just yet.
+
+Contributions... You really want to? I'm stoked you exist. Ping me and I'll
+get around the local tooling faster so that it's easier for you to contribute!
 
 Any other matter about Mlynar -- feel free to open a [discussion](https://github.com/ffluffyhedgehog/mlynar/discussions),
 an [issue](https://github.com/ffluffyhedgehog/mlynar/issues/new), or just drop me an email
