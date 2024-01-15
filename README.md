@@ -8,12 +8,13 @@ based on data kinds and operators.
 1. [Conceptual overview](#conceptual-overview)
 2. [Why it might be better than a user defined DAG like CWL](#why-it-might-be-better-than-a-user-defined-dag-like-cwl)
 3. [Declaring Operators and DataKinds](#declaring-operators-and-datakinds)
-4. [Deploying Mlynar](#deploying-mlynar)
-5. [Executing a Run](#executing-a-run)
-6. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
-7. [Debugging problematic Steps](#debugging-problematic-steps)
-8. [IMPORTANT Security concerns](#security-concerns)
-9. [Contribution and communication](#contribution-and-communication)
+4. [Fun things you might enjoy doing with Mlynar](#fun-things-you-might-enjoy-doing-with-mlynar)
+5. [Deploying Mlynar](#deploying-mlynar)
+6. [Executing a Run](#executing-a-run)
+7. [Mlynar Jobs and PVCs](#mlynar-jobs-and-pvcs)
+8. [Debugging problematic Steps](#debugging-problematic-steps)
+9. [IMPORTANT Security concerns](#security-concerns)
+10. [Contribution and communication](#contribution-and-communication)
 
 ## Conceptual overview
 
@@ -53,6 +54,19 @@ depending on your inputs and parameters.
 Mlynar also exposes _all_ the intermediary data in the Run, with a link to
 download! No more digging into the intestines of whatever the thing you run CWL on
 nowadays or building workarounds!
+
+## Fun things you might enjoy doing with Mlynar
+
+A step in the pipeline needs to make a decision? Declare as many possible
+outputs as you like, and let the operator select which one to output!
+
+You need to slice a 3d thing (like a CT scan) into 2d slices
+which will then be processed by other operators, but you don't know how many
+of them will be there? Just throw them all into the output, as many as there are,
+and Mlynar will figure it out!
+
+You might even need to run each of those 2d slices along with a single other
+piece of data, and Mlynar will do it for you!
 
 ## Declaring Operators and DataKinds
 
