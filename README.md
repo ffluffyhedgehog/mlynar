@@ -68,6 +68,12 @@ and Mlynar will figure it out!
 You might even need to run each of those 2d slices along with a single other
 piece of data, and Mlynar will do it for you!
 
+You have a set of operators working with CSV but now you're migrating to HDF5?
+Just make two adapters (CSV => HDF5 and HDF5 => CSV) and now you won't need
+to rewrite everything at once to accept the new format! Mlynar will
+convert HDF5 to CSV for the new Operators if you input HDF5, and will convert
+CSV to HDF5 for the new ones!
+
 ## Declaring Operators and DataKinds
 
 DataKinds and Operators are declared with [Kubernetes Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
