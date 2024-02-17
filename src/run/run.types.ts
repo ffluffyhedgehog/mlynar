@@ -55,5 +55,4 @@ export interface DataUnit {
   id: DataUnitId;
   dataKind: string;
   ancestors: string[];
-  url: string;
 }

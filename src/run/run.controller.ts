@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  StreamableFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { RunService } from './run.service';
 import * as process from 'process';
 import { DeepReadonly } from '../util/deep-freeze';
 import { MockRunService } from './mock-run.service';
+import { MinioService } from './minio.service';
 
 @Controller()
 export class RunController {
@@ -27,6 +29,7 @@ export class RunController {
     private k8sService: K8sService,
     private runService: RunService,
     private mockRunService: MockRunService,
+    private minioService: MinioService,
   ) {}
 
   @Post()
@@ -168,5 +171,10 @@ export class RunController {
       throw new HttpException('DataKind not found', 404);
     }
     return this.fsService.addToDataPool(id, files[0].path, datakind, stepId);
+  }
+
+  @Get('data-unit/:id')
+  async getDataUnit(@Param('id') id: string) {
+    return new StreamableFile(await this.minioService.getFileStream(id));
   }
 }

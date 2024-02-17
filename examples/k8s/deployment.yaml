@@ -15,7 +15,7 @@ spec:
       serviceAccountName: mlynar-sa
       containers:
       - name: mlynar
-        image: ffluffyhedgehog/mlynar:0.1.0
+        image: ffluffyhedgehog/mlynar:0.1.7
         imagePullPolicy: Always
         env:
         - name: RUN_MOUNT_DIR
@@ -24,6 +24,11 @@ spec:
           value: mlynar-service
         - name: SERVICE_PORT
           value: "3000"
+        envFrom:
+          # MINIO_SERVICE_NAME, MINIO_SERVICE_PORT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET_NAME
+          # go in these secrets
+          - secretRef:
+              name: minio-secrets
         volumeMounts:
         - name: run-volume
           mountPath: /runs

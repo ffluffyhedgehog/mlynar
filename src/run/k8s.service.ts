@@ -13,6 +13,7 @@ import {
 } from './run.types';
 import { v4 as uuidv4 } from 'uuid';
 import { DeepReadonly } from '../util/deep-freeze';
+import { MinioService } from './minio.service';
 
 const GROUP = 'mlynar.dev';
 const VERSION = 'v1alpha1';
@@ -42,6 +43,7 @@ export class K8sService implements OnModuleInit {
   constructor(
     private readonly configService: ConfigService,
     private readonly fsService: FsService,
+    private readonly minioService: MinioService,
   ) {}
 
   dataKindExists(dataKindName: string) {
@@ -150,12 +152,13 @@ export class K8sService implements OnModuleInit {
     step: RunStep,
     operator: Operator,
   ) {
-    const inputLinks = Object.keys(step.inputDataUnits)
-      .map((key) => {
-        return run.dataPool.find(
-          (dataUnit) => dataUnit.id === step.inputDataUnits[key],
-        ).url;
-      })
+    const inputIds = Object.keys(step.inputDataUnits)
+      .map(
+        (key) =>
+          run.dataPool.find(
+            (dataUnit) => dataUnit.id === step.inputDataUnits[key],
+          ).id,
+      )
       .join(' ');
     const pod: V1Pod = {
       apiVersion: 'v1',
@@ -174,7 +177,7 @@ export class K8sService implements OnModuleInit {
             image: `ffluffyhedgehog/mlynar-operator-wrapper:${this.MLYNAR_VERSION}`,
             args: [
               '-c',
-              `mkdir -p /data/output && echo "Folder created" && /usr/bin/node down.js ${inputLinks} && echo "Input downloaded" && chown -R 1000:1000 /data && chmod -R 777 /data/`,
+              `mkdir -p /data/output && echo "Folder created" && /usr/bin/node down.js ${inputIds} && echo "Input downloaded" && chown -R 1000:1000 /data && chmod -R 777 /data/`,
             ],
             env: [
               {

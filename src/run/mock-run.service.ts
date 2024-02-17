@@ -61,7 +61,6 @@ function createMockedSpace() {
     dataKind:
       dataKinds[Math.floor(Math.random() * dataKinds.length)].metadata.name,
     ancestors: [],
-    url: '',
   }));
   const run: Run = {
     id: randomString(),
@@ -218,7 +217,6 @@ export class MockRunService {
                   .filter(uniq),
                 parent.operator.metadata.name,
               ],
-              url: '',
             };
           },
         ),

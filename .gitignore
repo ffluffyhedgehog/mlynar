@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 .idea
+
+examples/k8s/secret.yaml

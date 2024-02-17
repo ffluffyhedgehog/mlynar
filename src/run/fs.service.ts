@@ -8,6 +8,7 @@ import * as path from 'path';
 import { uniq } from '../util/uniq';
 import { STATICS_ROUTE } from '../app.const';
 import { deepFreeze, DeepReadonly } from '../util/deep-freeze';
+import { MinioService } from './minio.service';
 @Injectable()
 export class FsService implements OnModuleInit {
   private readonly logger = new Logger(FsService.name);
@@ -17,7 +18,10 @@ export class FsService implements OnModuleInit {
 
   private readonly runs = new Map<string, Run>();
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly minioService: MinioService,
+  ) {}
 
   onModuleInit(): any {
     const cacheDir = path.join(this.DIRECTORY, 'cache');
@@ -66,6 +70,12 @@ export class FsService implements OnModuleInit {
   }
 
   async deleteRun(runId: string): Promise<void> {
+    await this.pushRunToMemory(runId);
+    const run = this.runs.get(runId);
+    await Promise.all(
+      run.dataPool.map((unit) => this.minioService.deleteFile(unit.id)),
+    );
+
     await fs.rm(this.getRunDir(runId), {
       recursive: true,
       force: true,
@@ -184,10 +194,11 @@ export class FsService implements OnModuleInit {
       id,
       dataKind: datakind,
       ancestors: stepId ? this.getAncestorsForJob(run, stepId) : [],
-      url: this.getDataFileUrl(runId, id),
     };
 
-    await fs.rename(filePath, this.getDataFile(runId, dataUnit.id));
+    await this.minioService.saveFile(id, filePath);
+
+    await fs.unlink(filePath);
 
     await this.addDataUnitToRun(runId, dataUnit);
 
