@@ -1,6 +1,6 @@
 build-docker:
 	docker buildx build . -t mlynar:latest --build-arg MLYNAR_VERSION=${MLYNAR_VERSION}
-	docker buildx build ./operator-wrapper -t ffluffyhedgehog/mlynar-operator-wrapper:${MLYNAR_VERSION}
+	docker buildx build ./operator-wrapper -t mlynar-operator-wrapper:latest
 
 start:
 	kubectl apply -f ./examples/k8s/deployment.yaml

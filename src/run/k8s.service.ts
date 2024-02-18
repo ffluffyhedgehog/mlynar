@@ -3,7 +3,7 @@ import { DataKind, Operator, ResourceResponse } from './k8s.types';
 import * as k8s from '@kubernetes/client-node';
 import { V1EnvVar, V1Pod } from '@kubernetes/client-node';
 import { ConfigService } from '@nestjs/config';
-import { FsService } from './fs.service';
+import { DataService } from './data.service';
 import {
   OperatorParameter,
   Run,
@@ -42,7 +42,7 @@ export class K8sService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly fsService: FsService,
+    private readonly fsService: DataService,
     private readonly minioService: MinioService,
   ) {}
 
@@ -85,7 +85,7 @@ export class K8sService implements OnModuleInit {
       status: StepStatus.Created,
     };
 
-    await this.fsService.addStepToRun(run.id, step);
+    await this.fsService.addStepToRun(run._id, step);
     this.logger.debug('Step added to run');
 
     await this.spawnPVC(step.pvcName);
@@ -93,11 +93,11 @@ export class K8sService implements OnModuleInit {
     await this.spawnJob(run, step, stepArg.operator);
     this.logger.debug('Job created');
 
-    await this.fsService.setStepStatus(run.id, step.id, StepStatus.Running);
+    await this.fsService.setStepStatus(run._id, step.id, StepStatus.Running);
 
     const status = await this.waitForJobToFinish(step);
 
-    await this.fsService.setStepStatus(run.id, step.id, status);
+    await this.fsService.setStepStatus(run._id, step.id, status);
 
     if (status === StepStatus.Success) {
       await this.deleteJob(step);
@@ -232,7 +232,7 @@ export class K8sService implements OnModuleInit {
               },
               {
                 name: 'BASE_URL',
-                value: `http://${this.fsService.SERVICE_NAME}:${this.fsService.SERVICE_PORT}/api/run/${run.id}/returns/${step.id}`,
+                value: `http://${this.fsService.SERVICE_NAME}:${this.fsService.SERVICE_PORT}/api/run/${run._id}/returns/${step.id}`,
               },
             ],
             volumeMounts: [

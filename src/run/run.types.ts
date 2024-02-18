@@ -21,7 +21,9 @@ export type RunStepId = string;
 export type DataUnitId = string;
 
 export interface Run {
-  id: RunId;
+  readonly _rev?: string;
+  _deleted?: true;
+  _id: RunId;
   steps: RunStep[];
   status: RunStatus;
   dataPool: DataUnit[];

@@ -15,7 +15,7 @@ spec:
       serviceAccountName: mlynar-sa
       containers:
       - name: mlynar
-        image: ffluffyhedgehog/mlynar:0.1.7
+        image: ffluffyhedgehog/mlynar:0.1.12
         imagePullPolicy: Always
         env:
         - name: RUN_MOUNT_DIR
@@ -29,6 +29,10 @@ spec:
           # go in these secrets
           - secretRef:
               name: minio-secrets
+          # adminPassword, adminUsername, cookieAuthSecret, erlangCookie, COUCHDB_SERVICE_NAME, COUCHDB_SERVICE_PORT
+          # go in these secrets
+          - secretRef:
+              name: mlynar-couchdb
         volumeMounts:
         - name: run-volume
           mountPath: /runs

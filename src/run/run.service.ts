@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FsService } from './fs.service';
+import { DataService } from './data.service';
 import { K8sService } from './k8s.service';
 import { DataUnit, Run, RunStatus, RunStepArgument } from './run.types';
 import { cartesianProduct } from '../util/cartesian';
@@ -17,7 +17,7 @@ export class RunService {
   constructor(
     private readonly configService: ConfigService,
     private readonly k8sService: K8sService,
-    private readonly fsService: FsService,
+    private readonly fsService: DataService,
   ) {}
 
   async run(runId: string) {

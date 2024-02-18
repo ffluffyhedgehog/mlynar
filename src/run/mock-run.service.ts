@@ -63,7 +63,7 @@ function createMockedSpace() {
     ancestors: [],
   }));
   const run: Run = {
-    id: randomString(),
+    _id: randomString(),
     steps: [],
     status: RunStatus.Created,
     dataPool: startingDataUnits,

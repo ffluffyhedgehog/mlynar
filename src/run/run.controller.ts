@@ -11,7 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FsService } from './fs.service';
+import { DataService } from './data.service';
 import { K8sService } from './k8s.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -25,7 +25,7 @@ import { MinioService } from './minio.service';
 @Controller()
 export class RunController {
   constructor(
-    private fsService: FsService,
+    private fsService: DataService,
     private k8sService: K8sService,
     private runService: RunService,
     private mockRunService: MockRunService,
@@ -33,7 +33,7 @@ export class RunController {
   ) {}
 
   @Post()
-  createRun(): Promise<Run> {
+  createRun(): Promise<DeepReadonly<Run>> {
     return this.fsService.createRun();
   }
 
