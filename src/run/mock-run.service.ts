@@ -17,7 +17,7 @@ import * as crypto from 'crypto';
 const randomString = () => crypto.randomBytes(16).toString('hex');
 const pickRandomInputs = (dataKinds: DataKind[]) => {
   const starter = Math.random() > 0.5;
-  return Array.from({ length: Math.ceil(Math.random() * 2) }, () => {
+  return Array.from({ length: Math.round(Math.random() * 2) }, () => {
     return dataKinds[
       Math.floor(
         (Math.random() * dataKinds.length) / 3 +
@@ -30,8 +30,17 @@ const pickRandomInputs = (dataKinds: DataKind[]) => {
   }));
 };
 
+const pickRandomOutputs = (dataKinds: DataKind[]) => {
+  return Array.from({ length: Math.random() > 0.8 ? 2 : 1 }, () => {
+    return dataKinds[
+      Math.floor(dataKinds.length / 3) +
+        Math.floor(Math.random() * ((dataKinds.length * 2) / 3))
+    ].metadata.name;
+  });
+};
+
 function createMockedSpace() {
-  const dataKinds: DataKind[] = Array.from({ length: 25 }, () => ({
+  const dataKinds: DataKind[] = Array.from({ length: 10 }, () => ({
     apiVersion: '',
     metadata: { name: randomString() } as any,
     spec: {
@@ -39,7 +48,7 @@ function createMockedSpace() {
     },
     kind: '',
   }));
-  const operators: Operator[] = Array.from({ length: 50 }, () => {
+  const operators: Operator[] = Array.from({ length: 15 }, () => {
     const inputs = pickRandomInputs(dataKinds);
     return {
       metadata: { name: randomString() } as any,
@@ -47,16 +56,16 @@ function createMockedSpace() {
       kind: '',
       spec: {
         configurableEnv: [],
-        inputTypes: inputs.map((i) => i.dataKind),
+        inputKinds: inputs.map((i) => i.dataKind),
         inputs: inputs,
         command: '',
-        possibleOutputKinds: [],
+        possibleOutputKinds: pickRandomOutputs(dataKinds),
         constantEnv: [],
         image: '',
       },
     };
   });
-  const startingDataUnits: DataUnit[] = Array.from({ length: 3 }, () => ({
+  const startingDataUnits: DataUnit[] = Array.from({ length: 1 }, () => ({
     id: randomString(),
     dataKind:
       dataKinds[Math.floor(Math.random() * dataKinds.length)].metadata.name,
@@ -170,8 +179,11 @@ export class MockRunService {
         break;
       }
 
-      if (passes > 1000 || cleanStepInputs.length > 1000) {
-        return {};
+      if (passes > 30 || cleanStepInputs.length > 1000) {
+        console.log(
+          `ABORTING: passes: ${passes}, cleanStepInputs: ${cleanStepInputs.length}`,
+        );
+        return null;
       }
 
       console.log(passes);
@@ -189,25 +201,23 @@ export class MockRunService {
       );
 
       run.dataPool.push(
-        ...Array.from(
-          {
-            length: Math.floor(Math.random() * (cleanStepInputs.length * 2)),
-          },
-          () => {
-            const parent =
-              cleanStepInputs[
-                Math.floor(Math.random() * cleanStepInputs.length)
-              ];
-            const stepInputIds = new Set(Object.values(parent.inputs));
+        ...run.steps
+          .filter(() => Math.random() > 0.05)
+          .flatMap((step) => {
+            const op = this.operators.find(
+              (op) => op.metadata.name === step.operator,
+            );
+            const passingOutputs = op.spec.possibleOutputKinds.filter(
+              () => Math.random() > 0.4,
+            );
+            const stepInputIds = new Set(Object.values(step.inputDataUnits));
 
             const stepInputs = run.dataPool.filter((dataUnit) =>
               stepInputIds.has(dataUnit.id),
             );
-            return {
+            return passingOutputs.map((outputKind) => ({
               id: randomString(),
-              dataKind:
-                dataKinds[Math.floor(Math.random() * dataKinds.length)].metadata
-                  .name,
+              dataKind: outputKind,
               ancestors: [
                 ...stepInputs
                   .reduce(
@@ -215,11 +225,10 @@ export class MockRunService {
                     [] as string[],
                   )
                   .filter(uniq),
-                parent.operator.metadata.name,
+                op.metadata.name,
               ],
-            };
-          },
-        ),
+            }));
+          }),
       );
     }
 
@@ -244,7 +253,7 @@ export class MockRunService {
       .filter(uniq);
 
     return this.operators.filter((operator) => {
-      return isSuperSet(operator.spec.inputTypes, dataKinds);
+      return isSuperSet(operator.spec.inputKinds, dataKinds);
     });
   }
 
@@ -253,7 +262,7 @@ export class MockRunService {
     run: DeepReadonly<Run>,
   ): { operator: Operator; inputOptions: Record<string, string[]> } {
     const availableDataUnits = run.dataPool.filter((unit) =>
-      operator.spec.inputTypes.includes(unit.dataKind),
+      operator.spec.inputKinds.includes(unit.dataKind),
     );
 
     return {

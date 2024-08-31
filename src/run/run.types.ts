@@ -20,7 +20,14 @@ export type DataKindName = string;
 export type RunStepId = string;
 export type DataUnitId = string;
 
-export interface Run {
+export interface TimeTracked {
+  startTime?: number;
+  endTime?: number;
+  durationMs?: number;
+  durationS?: number;
+}
+
+export interface Run extends TimeTracked {
   readonly _rev?: string;
   _deleted?: true;
   _id: RunId;
@@ -38,7 +45,7 @@ export interface OperatorParameter {
   defaultValue: string;
 }
 
-export interface RunStep {
+export interface RunStep extends TimeTracked {
   id: RunStepId;
   jobName: string;
   inputDataUnits: Record<string, string>;

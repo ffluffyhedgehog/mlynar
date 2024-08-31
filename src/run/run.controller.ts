@@ -25,7 +25,7 @@ import { MinioService } from './minio.service';
 @Controller()
 export class RunController {
   constructor(
-    private fsService: DataService,
+    private dataService: DataService,
     private k8sService: K8sService,
     private runService: RunService,
     private mockRunService: MockRunService,
@@ -34,15 +34,15 @@ export class RunController {
 
   @Post()
   createRun(): Promise<DeepReadonly<Run>> {
-    return this.fsService.createRun();
+    return this.dataService.createRun();
   }
 
   @Delete(':id')
   async deleteRun(@Param('id') id: string) {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
-    const run = await this.fsService.getRun(id);
+    const run = await this.dataService.getRun(id);
     if (run.status === RunStatus.Running) {
       throw new HttpException('Run is still running', HttpStatus.BAD_REQUEST);
     }
@@ -58,36 +58,36 @@ export class RunController {
       }
     }
 
-    await this.fsService.deleteRun(id);
+    await this.dataService.deleteRun(id);
 
     return { message: 'Run deleted' };
   }
 
   @Post(':id/terminate')
   async terminateRun(@Param('id') id: string) {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
 
-    await this.fsService.terminateRun(id);
+    await this.dataService.terminateRun(id);
 
     return { message: 'Run terminated' };
   }
 
   @Get(':id')
   async getRun(@Param('id') id: string): Promise<DeepReadonly<Run>> {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
-    return this.fsService.getRun(id);
+    return this.dataService.getRun(id);
   }
 
   @Get(':id/params')
   async getRunParams(@Param('id') id: string): Promise<RunOperatorParams> {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
-    const run = await this.fsService.getRun(id);
+    const run = await this.dataService.getRun(id);
     return (
       await this.runService.getRecursiveAvailableOperators(run.dataPool)
     ).reduce(
@@ -101,20 +101,24 @@ export class RunController {
     @Param('id') id: string,
     @Body() body: RunOperatorParams,
   ): Promise<DeepReadonly<Run>> {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
-    await this.fsService.setRunParamPool(id, body);
-    await this.fsService.setRunStatus(id, RunStatus.Running);
+    await this.dataService.setRunParamPool(id, body);
+    await this.dataService.setRunStatus(id, RunStatus.Running);
 
     this.runService.run(id).then(); // so that it runs off independent of the HTTP call
 
-    return this.fsService.getRun(id);
+    return this.dataService.getRun(id);
   }
 
   @Post('mock-run')
   async mockRun() {
-    return this.mockRunService.run();
+    const r = await Promise.all(
+      Array.from({ length: 100 }, () => this.mockRunService.run()),
+    );
+
+    return r.filter((a) => a);
   }
 
   @Post(':id/upload/:datakind')
@@ -132,7 +136,7 @@ export class RunController {
     @Param('datakind') datakind: string,
     @Param('id') id: string,
   ) {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', HttpStatus.NOT_FOUND);
     }
 
@@ -140,7 +144,7 @@ export class RunController {
       throw new HttpException('DataKind not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.fsService.addToDataPool(id, files[0].path, datakind);
+    return this.dataService.addToDataPool(id, files[0].path, datakind);
   }
 
   @Post(':id/returns/:stepId/:datakind')
@@ -159,18 +163,18 @@ export class RunController {
     @Param('id') id: string,
     @Param('stepId') stepId: string,
   ) {
-    if (!(await this.fsService.runExists(id))) {
+    if (!(await this.dataService.runExists(id))) {
       throw new HttpException('Run not found', 404);
     }
 
-    if (!(await this.fsService.stepExists(id, stepId))) {
+    if (!(await this.dataService.stepExists(id, stepId))) {
       throw new HttpException('Step not found', 404);
     }
 
     if (!this.k8sService.dataKindExists(datakind)) {
       throw new HttpException('DataKind not found', 404);
     }
-    return this.fsService.addToDataPool(id, files[0].path, datakind, stepId);
+    return this.dataService.addToDataPool(id, files[0].path, datakind, stepId);
   }
 
   @Get('data-unit/:id')

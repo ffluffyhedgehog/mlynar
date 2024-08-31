@@ -69,6 +69,7 @@ export class DataService implements OnModuleInit {
         if (e.name !== 'conflict') {
           throw e;
         }
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         run = await this.pouchDB.get(runId);
       }
@@ -89,13 +90,26 @@ export class DataService implements OnModuleInit {
         throw e;
       }
 
-      return this.addStepToRun(runId, step);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      return await this.addStepToRun(runId, step);
     }
   }
 
   async setRunStatus(runId: string, status: RunStatus): Promise<void> {
     const run: Run = await this.pouchDB.get(runId);
     run.status = status;
+    switch (status) {
+      case RunStatus.Terminated:
+      case RunStatus.Complete:
+        run.endTime = performance.now();
+        run.durationMs = run.endTime - run.startTime;
+        run.durationS = run.durationMs / 1000;
+        break;
+      case RunStatus.Running:
+        run.startTime = performance.now();
+        break;
+    }
     try {
       await this.pouchDB.put(run);
     } catch (e) {
@@ -103,7 +117,9 @@ export class DataService implements OnModuleInit {
         throw e;
       }
 
-      return this.setRunStatus(runId, status);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      return await this.setRunStatus(runId, status);
     }
   }
 
@@ -126,7 +142,26 @@ export class DataService implements OnModuleInit {
     const run: Run = await this.pouchDB.get(runId);
 
     const step = run.steps.find((step) => step.id === stepId);
+    if (!step) {
+      console.log(
+        `Step ${stepId} not found in run ${runId} to set status to ${status}, trying again in 1s`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return await this.setStepStatus(runId, stepId, status);
+    }
     step.status = status;
+
+    switch (status) {
+      case StepStatus.Running:
+        step.startTime = performance.now();
+        break;
+      case StepStatus.Success:
+      case StepStatus.Failure:
+        step.endTime = performance.now();
+        step.durationMs = step.endTime - step.startTime;
+        step.durationS = step.durationMs / 1000;
+        break;
+    }
     try {
       await this.pouchDB.put(run);
     } catch (e) {
@@ -134,7 +169,9 @@ export class DataService implements OnModuleInit {
         throw e;
       }
 
-      return this.setStepStatus(runId, stepId, status);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      return await this.setStepStatus(runId, stepId, status);
     }
   }
 
@@ -151,6 +188,8 @@ export class DataService implements OnModuleInit {
       if (e.name !== 'conflict') {
         throw e;
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       return this.setRunParamPool(runId, paramPool);
     }
@@ -212,6 +251,8 @@ export class DataService implements OnModuleInit {
           throw e;
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         run = await this.pouchDB.get(runId);
       }
     }
@@ -219,7 +260,7 @@ export class DataService implements OnModuleInit {
     return deepFreeze(dataUnit);
   }
 
-  getAncestorsForJob(run: DeepReadonly<Run>, stepId: string): string[] {
+  private getAncestorsForJob(run: DeepReadonly<Run>, stepId: string): string[] {
     const step = run.steps.find((step) => step.id === stepId);
     const stepInputIds = new Set(Object.values(step.inputDataUnits));
 

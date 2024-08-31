@@ -10,6 +10,14 @@ import { Operator } from './k8s.types';
 import { recordEqual } from '../util/record-equal';
 import { DeepReadonly } from '../util/deep-freeze';
 
+const chunk = (input, size) => {
+  return input.reduce((arr, item, idx) => {
+    return idx % size === 0
+      ? [...arr, [item]]
+      : [...arr.slice(0, -1), [...arr.slice(-1)[0], item]];
+  }, []);
+};
+
 @Injectable()
 export class RunService {
   private readonly logger = new Logger(RunService.name);
@@ -17,14 +25,14 @@ export class RunService {
   constructor(
     private readonly configService: ConfigService,
     private readonly k8sService: K8sService,
-    private readonly fsService: DataService,
+    private readonly dataService: DataService,
   ) {}
 
   async run(runId: string) {
     while (true) {
       this.logger.debug(`Starting pass on run ${runId}`);
 
-      const run = await this.fsService.getRun(runId);
+      const run = await this.dataService.getRun(runId);
       if (run.status === RunStatus.Terminated) {
         this.logger.debug(`Run ${runId} terminated.`);
         return;
@@ -98,34 +106,43 @@ export class RunService {
         break;
       }
 
-      await Promise.all(
-        cleanStepInputs.map((stepArg) => {
-          return this.k8sService.runStep(run, stepArg);
-        }),
-      );
+      const stepChunks = chunk(cleanStepInputs, 3);
+      for (const stepChunk of stepChunks) {
+        await Promise.all(
+          stepChunk.map((stepArg) => {
+            return this.k8sService.runStep(run, stepArg);
+          }),
+        );
+      }
+
+      // await Promise.all(
+      //   cleanStepInputs.map((stepArg) => {
+      //     return this.k8sService.runStep(run, stepArg);
+      //   }),
+      // );
     }
 
     this.logger.debug(`Run ${runId} complete!`);
 
-    await this.fsService.setRunStatus(runId, RunStatus.Complete);
+    await this.dataService.setRunStatus(runId, RunStatus.Complete);
   }
 
-  getImmediatelyAvailableOperators(run: DeepReadonly<Run>) {
+  private getImmediatelyAvailableOperators(run: DeepReadonly<Run>) {
     const dataKinds = run.dataPool
       .map((dataUnit) => dataUnit.dataKind)
       .filter(uniq);
 
     return this.k8sService.operators.filter((operator) => {
-      return isSuperSet(operator.spec.inputTypes, dataKinds);
+      return isSuperSet(operator.spec.inputKinds, dataKinds);
     });
   }
 
-  selectOperatorInputs(
+  private selectOperatorInputs(
     operator: Operator,
     run: DeepReadonly<Run>,
   ): { operator: Operator; inputOptions: Record<string, string[]> } {
     const availableDataUnits = run.dataPool.filter((unit) =>
-      operator.spec.inputTypes.includes(unit.dataKind),
+      operator.spec.inputKinds.includes(unit.dataKind),
     );
 
     return {
@@ -157,7 +174,7 @@ export class RunService {
     do {
       newOps = this.k8sService.operators.filter(
         (op) =>
-          isSuperSet(op.spec.inputTypes, dataKinds) && !operators.includes(op),
+          isSuperSet(op.spec.inputKinds, dataKinds) && !operators.includes(op),
       );
       operators.push(...newOps);
       dataKinds.push(

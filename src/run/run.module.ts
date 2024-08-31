@@ -17,5 +17,6 @@ import { MinioService } from './minio.service';
     MockRunService,
     MinioService,
   ],
+  exports: [K8sService],
 })
 export class RunModule {}

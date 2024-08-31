@@ -13,7 +13,6 @@ import {
 } from './run.types';
 import { v4 as uuidv4 } from 'uuid';
 import { DeepReadonly } from '../util/deep-freeze';
-import { MinioService } from './minio.service';
 
 const GROUP = 'mlynar.dev';
 const VERSION = 'v1alpha1';
@@ -42,8 +41,7 @@ export class K8sService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly fsService: DataService,
-    private readonly minioService: MinioService,
+    private readonly dataService: DataService,
   ) {}
 
   dataKindExists(dataKindName: string) {
@@ -74,6 +72,8 @@ export class K8sService implements OnModuleInit {
   }
 
   async runStep(run: DeepReadonly<Run>, stepArg: RunStepArgument) {
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));
+
     const stepId = uuidv4();
     const step: Readonly<RunStep> = {
       id: stepId,
@@ -85,19 +85,19 @@ export class K8sService implements OnModuleInit {
       status: StepStatus.Created,
     };
 
-    await this.fsService.addStepToRun(run._id, step);
+    await this.dataService.addStepToRun(run._id, step);
     this.logger.debug('Step added to run');
 
-    await this.spawnPVC(step.pvcName);
+    await this.spawnPVC(run._id, step.pvcName);
     this.logger.debug('PVC created');
     await this.spawnJob(run, step, stepArg.operator);
     this.logger.debug('Job created');
 
-    await this.fsService.setStepStatus(run._id, step.id, StepStatus.Running);
+    await this.dataService.setStepStatus(run._id, step.id, StepStatus.Running);
 
     const status = await this.waitForJobToFinish(step);
 
-    await this.fsService.setStepStatus(run._id, step.id, status);
+    await this.dataService.setStepStatus(run._id, step.id, status);
 
     if (status === StepStatus.Success) {
       await this.deleteJob(step);
@@ -195,7 +195,6 @@ export class K8sService implements OnModuleInit {
           {
             name: `${step.jobName}-operator`,
             image: operator.spec.image,
-            restartPolicy: 'Never',
             args: operator.spec.args || [],
             env: [
               ...(operator.spec.constantEnv || ([] as V1EnvVar[])),
@@ -232,7 +231,7 @@ export class K8sService implements OnModuleInit {
               },
               {
                 name: 'BASE_URL',
-                value: `http://${this.fsService.SERVICE_NAME}:${this.fsService.SERVICE_PORT}/api/run/${run._id}/returns/${step.id}`,
+                value: `http://${this.dataService.SERVICE_NAME}:${this.dataService.SERVICE_PORT}/api/run/${run._id}/returns/${step.id}`,
               },
             ],
             volumeMounts: [
@@ -254,9 +253,13 @@ export class K8sService implements OnModuleInit {
       },
     };
 
-    await this.k8sBatchApi.createNamespacedJob(this.NAMESPACE, {
+    const job = {
       metadata: {
         name: step.jobName,
+        labels: {
+          run: run._id,
+          mlynar: 'step',
+        },
       },
       spec: {
         template: pod,
@@ -264,12 +267,16 @@ export class K8sService implements OnModuleInit {
         parallelism: 1,
         completions: 1,
       },
-    });
+    };
+
+    console.log(JSON.stringify(job));
+
+    await this.k8sBatchApi.createNamespacedJob(this.NAMESPACE, job);
 
     this.logger.debug(`Started job ${step.jobName}`);
   }
 
-  mergeParams(
+  private mergeParams(
     params: DeepReadonly<OperatorParameter[]>,
     givenParams?: DeepReadonly<OperatorParameter[]>,
   ) {
@@ -287,12 +294,16 @@ export class K8sService implements OnModuleInit {
     });
   }
 
-  private async spawnPVC(pvcName: string) {
+  private async spawnPVC(runId: string, pvcName: string) {
     await this.k8sApi.createNamespacedPersistentVolumeClaim(this.NAMESPACE, {
       apiVersion: 'v1',
       kind: 'PersistentVolumeClaim',
       metadata: {
         name: pvcName,
+        labels: {
+          run: runId,
+          mlynar: 'step',
+        },
       },
       spec: {
         accessModes: ['ReadWriteOnce'],
@@ -328,7 +339,7 @@ export class K8sService implements OnModuleInit {
       ...op,
       spec: {
         ...op.spec,
-        inputTypes: op.spec.inputs.map((input) => input.dataKind),
+        inputKinds: op.spec.inputs.map((input) => input.dataKind),
       },
     }));
   }

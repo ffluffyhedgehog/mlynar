@@ -19,7 +19,7 @@ export interface OperatorSpec {
     dataKind: string;
     fileLocationEnv: string;
   }[];
-  inputTypes: string[];
+  inputKinds: string[];
   possibleOutputKinds: string[];
 }
 
